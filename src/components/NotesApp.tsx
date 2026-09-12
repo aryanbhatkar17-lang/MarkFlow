@@ -30,8 +30,12 @@ export function NotesApp() {
     () => [
       {
         key: "n",
-        mod: true,
-        handler: () => createNewNote(),
+        mod: false,
+        handler: (event: KeyboardEvent) => {
+          if(event.altKey){
+            createNewNote();
+          }
+        }
       },
     ],
     [createNewNote],
