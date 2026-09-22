@@ -64,3 +64,23 @@ body {
   background: #d0d0c8;
   color: #111111;          
 }
+
+/*Media queries for screens smaller than 1024px*/
+@media (max-width: 1023px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Mobile View (Screens smaller than 768px) */
+@media (max-width: 767px) {
+  body {
+    font-size: 13px;
+    overscroll-behavior-y: none;
+  }
+  
+  /* Ensures touch targets are responsive on small screens */
+  button, input, textarea {
+    touch-action: manipulation;
+  }
+}

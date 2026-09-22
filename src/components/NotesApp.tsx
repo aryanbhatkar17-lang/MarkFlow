@@ -52,7 +52,7 @@ export function NotesApp() {
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden text-foreground">
+    <div className="relative flex h-dvh overflow-hidden text-foreground">
       <Sidebar
         notes={notes}
         activeNoteId={activeNoteId}
@@ -64,6 +64,7 @@ export function NotesApp() {
       />
 
       <Workspace
+        blurred={!sidebarCollapsed}
         note={activeNote}
         onContentChange={(content) => {
           if (activeNote) updateContent(activeNote.id, content);

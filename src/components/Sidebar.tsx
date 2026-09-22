@@ -18,6 +18,14 @@ interface SidebarProps {
   onDelete: (id: string) => void;
 }
 
+/**
+ * Overlay drawer sidebar:
+ * - The slim rail is always reserved in flow, so the workspace layout never
+ *   shifts when the sidebar opens or closes.
+ * - The full panel is absolutely positioned and slides over the read/write
+ *   area with a frosted-glass backdrop blur. Visibility flips discretely at
+ *   the transition endpoints so both enter and exit animations play fully.
+ */
 export function Sidebar({
   notes,
   activeNoteId,
@@ -37,15 +45,27 @@ export function Sidebar({
   const iconBtn =
     "rounded-lg p-2 text-muted transition-colors duration-200 ease-out hover:bg-accent-soft hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40";
 
-  if (collapsed) {
-    return (
-      <aside className="flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-sidebar/80 py-3 backdrop-blur-[2px]">
+  return (
+    <>
+      {/*
+        Slim rail — doubles as the collapsed sidebar. Always occupies its
+        48px so opening the drawer causes zero layout shift.
+      */}
+      <aside
+        aria-hidden={collapsed ? undefined : true}
+        className={[
+          "flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-sidebar/80 py-3 backdrop-blur-[2px]",
+          "transition-opacity duration-200 ease-out",
+          collapsed ? "opacity-100" : "pointer-events-none opacity-0",
+        ].join(" ")}
+      >
         <button
           type="button"
           onClick={onToggle}
           className={iconBtn}
           aria-label="Expand sidebar"
           title="Expand sidebar"
+          tabIndex={collapsed ? undefined : -1}
         >
           <PanelLeftOpen className="h-4 w-4" />
         </button>
@@ -55,73 +75,84 @@ export function Sidebar({
           className={`mt-1 ${iconBtn}`}
           aria-label="New note"
           title="New note (Ctrl/⌘ N)"
+          tabIndex={collapsed ? undefined : -1}
         >
           <Plus className="h-4 w-4" />
         </button>
       </aside>
-    );
-  }
 
-  return (
-    <aside className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-sidebar/90 backdrop-blur-[2px] transition-[width] duration-200 ease-out md:w-80">
-      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4">
-        <div className="min-w-0">
-          <p className="font-serif truncate text-lg font-semibold tracking-tight text-foreground">
-            MarkFlow
-          </p>
-          <p className="mt-0.5 text-[12px] text-muted">Your quiet notebook</p>
+      {/*
+        Full panel — overlay drawer. Slides in over the workspace; the
+        translucent background + backdrop blur frosts whatever it covers.
+      */}
+      <aside
+        aria-hidden={collapsed}
+        className={[
+          "absolute inset-y-0 left-0 z-30 flex w-72 flex-col border-r border-border md:w-80",
+          "bg-sidebar/70 shadow-[8px_0_32px_rgba(17,17,17,0.14)] backdrop-blur-xl",
+          "transition-[translate,transform,visibility] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
+          collapsed ? "invisible -translate-x-full" : "visible translate-x-0",
+        ].join(" ")}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4">
+          <div className="min-w-0">
+            <p className="font-serif truncate text-lg font-semibold tracking-tight text-foreground">
+              MarkFlow
+            </p>
+            <p className="mt-0.5 text-[12px] text-muted">Your quiet notebook</p>
+          </div>
+          <button
+            type="button"
+            onClick={onToggle}
+            className={iconBtn}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onToggle}
-          className={iconBtn}
-          aria-label="Collapse sidebar"
-          title="Collapse sidebar"
-        >
-          <PanelLeftClose className="h-4 w-4" />
-        </button>
-      </div>
 
-      <div className="space-y-2.5 border-b border-border px-3 py-3">
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-sm font-medium text-white transition-colors duration-200 ease-out hover:bg-[#245c4c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2.25} />
-          New note
-        </button>
-        <SearchInput value={query} onChange={setQuery} />
-      </div>
+        <div className="space-y-2.5 border-b border-border px-3 py-3">
+          <button
+            type="button"
+            onClick={onCreate}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-sm font-medium text-white transition-colors duration-200 ease-out hover:bg-[#245c4c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.25} />
+            New note
+          </button>
+          <SearchInput value={query} onChange={setQuery} />
+        </div>
 
-      <div className="custom-scrollbar flex-1 overflow-y-auto px-2 py-2">
-        {notes.length === 0 ? (
-          <EmptyState
-            variant="no-notes"
-            actionLabel="Start writing"
-            onAction={onCreate}
-          />
-        ) : visibleNotes.length === 0 ? (
-          <EmptyState variant="no-search-results" />
-        ) : (
-          <ul className="space-y-1" role="listbox" aria-label="Notes">
-            {visibleNotes.map((note) => (
-              <li key={note.id} role="option" aria-selected={note.id === activeNoteId}>
-                <NoteListItem
-                  note={note}
-                  isActive={note.id === activeNoteId}
-                  onSelect={onSelect}
-                  onDelete={onDelete}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        <div className="custom-scrollbar flex-1 overflow-y-auto px-2 py-2">
+          {notes.length === 0 ? (
+            <EmptyState
+              variant="no-notes"
+              actionLabel="Start writing"
+              onAction={onCreate}
+            />
+          ) : visibleNotes.length === 0 ? (
+            <EmptyState variant="no-search-results" />
+          ) : (
+            <ul className="space-y-1" role="listbox" aria-label="Notes">
+              {visibleNotes.map((note) => (
+                <li key={note.id} role="option" aria-selected={note.id === activeNoteId}>
+                  <NoteListItem
+                    note={note}
+                    isActive={note.id === activeNoteId}
+                    onSelect={onSelect}
+                    onDelete={onDelete}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      <div className="border-t border-border px-4 py-3 text-[12px] text-muted">
-        {notes.length} {notes.length === 1 ? "note" : "notes"} · saved here
-      </div>
-    </aside>
+        <div className="border-t border-border px-4 py-3 text-[12px] text-muted">
+          {notes.length} {notes.length === 1 ? "note" : "notes"} · saved here
+        </div>
+      </aside>
+    </>
   );
 }

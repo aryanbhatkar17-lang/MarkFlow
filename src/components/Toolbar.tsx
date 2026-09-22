@@ -105,10 +105,14 @@ export function Toolbar({
             onClick={() => onViewModeChange(mode)}
             className={[
               "rounded-lg px-2.5 py-1.5 font-medium transition-colors duration-200 ease-out",
+              // Split view needs room for two panes — only offer it on lg+ (>=1024px) screens
+              mode === "split" && "hidden lg:inline-flex",
               viewMode === mode
                 ? "bg-accent-soft text-accent"
                 : "text-muted hover:text-foreground",
-            ].join(" ")}
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {label}
           </button>

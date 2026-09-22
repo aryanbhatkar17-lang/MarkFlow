@@ -11,7 +11,7 @@ A fast, local-first markdown notepad.
 
 - **Live preview** with GitHub Flavored Markdown
 - **Auto-save** to your browser (\`localStorage\`)
-- **Keyboard shortcuts** — \`Ctrl/Cmd + N\` for a new note
+- **Keyboard shortcuts** — \`Alt/Option + N\` for a new note
 - Export any note as a \`.md\` file
 
 ### Try a checklist
